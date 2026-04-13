@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+arch="$(uname -m)"
+dir="${XDG_BIN_DIR:-$HOME/.local/bin}"
+name="opencode"
+build=0
+
+case "$arch" in
+  x86_64) arch="x64" ;;
+  aarch64) arch="arm64" ;;
+esac
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --build)
+      build=1
+      shift
+      ;;
+    --dir)
+      dir="$2"
+      shift 2
+      ;;
+    --name)
+      name="$2"
+      shift 2
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      echo "usage: ./script/install-bin [--build] [--dir <path>] [--name <name>]" >&2
+      exit 1
+      ;;
+  esac
+done
+
+bin="$root/dist/opencode-$os-$arch/bin/opencode"
+target="$dir/$name"
+
+if [[ $build -eq 1 || ! -x "$bin" ]]; then
+  bun "$root/script/build.ts" --single
+fi
+
+if [[ ! -x "$bin" ]]; then
+  echo "missing local binary: $bin" >&2
+  exit 1
+fi
+
+mkdir -p "$dir"
+ln -sf "$bin" "$target"
+
+echo "linked $target -> $bin"
+
+case ":${PATH:-}:" in
+  *":$dir:"*) ;;
+  *) echo "warning: $dir is not on PATH" >&2 ;;
+esac
