@@ -10,7 +10,8 @@ export type HomeRoute = {
 export type SessionRoute = {
   type: "session"
   sessionID: string
-  prompt?: PromptInfo
+  initialPrompt?: PromptInfo
+  autoSubmit?: boolean // auto-submit the prompt
 }
 
 export type PluginRoute = {

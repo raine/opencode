@@ -230,9 +230,12 @@ export function Session() {
   const bind = (r: PromptRef | undefined) => {
     prompt = r
     promptRef.set(r)
-    if (seeded || !route.prompt || !r) return
+    if (seeded || !route.initialPrompt || !r) return
     seeded = true
-    r.set(route.prompt)
+    r.set(route.initialPrompt)
+    if (route.autoSubmit && route.initialPrompt.input) {
+      r.submit()
+    }
   }
   const keybind = useKeybind()
   const dialog = useDialog()
